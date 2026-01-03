@@ -1,0 +1,1535 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>素振りカウント（家族用）</title>
+  <style>
+    :root{
+      --bg:#f7f7ff;
+      --card:#ffffff;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --accent:#4f46e5;
+      --accent2:#22c55e;
+      --danger:#ef4444;
+      --shadow: 0 10px 25px rgba(0,0,0,.08);
+      --radius: 18px;
+      --btnRadius: 16px;
+      --focus: 0 0 0 4px rgba(79,70,229,.18);
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      background: radial-gradient(1200px 800px at 20% 10%, #e9e7ff 0%, transparent 55%),
+                  radial-gradient(900px 700px at 90% 40%, #e8fff1 0%, transparent 50%),
+                  var(--bg);
+      color:var(--ink);
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(10px);
+      background: rgba(247,247,255,.75);
+      border-bottom: 1px solid rgba(17,24,39,.06);
+    }
+    .topbar{
+      max-width:980px;
+      margin:0 auto;
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      justify-content:space-between;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .logo{
+      width:40px; height:40px; border-radius:14px;
+      background: linear-gradient(135deg, #4f46e5, #22c55e);
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo:before{
+      content:"";
+      position:absolute; inset:-30%;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.9), transparent 55%);
+      transform: rotate(18deg);
+    }
+    .brand h1{
+      font-size:15px;
+      margin:0;
+      line-height:1.1;
+    }
+    .brand p{
+      margin:0;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .navbtns{display:flex; gap:8px; align-items:center;}
+    .iconbtn{
+      border:1px solid rgba(17,24,39,.12);
+      background: rgba(255,255,255,.7);
+      color:var(--ink);
+      border-radius:14px;
+      padding:10px 12px;
+      font-size:13px;
+      cursor:pointer;
+      transition:.15s transform, .15s background, .15s border;
+      display:flex; align-items:center; gap:8px;
+      user-select:none;
+    }
+    .iconbtn:hover{transform: translateY(-1px); background:#fff; border-color: rgba(79,70,229,.25);}
+    .iconbtn:focus{outline:none; box-shadow: var(--focus);}
+    .iconbtn.active{
+      background: rgba(79,70,229,.12);
+      border-color: rgba(79,70,229,.22);
+      color: var(--accent);
+      font-weight:900;
+    }
+
+    main{
+      max-width:980px;
+      margin:0 auto;
+      padding:16px 14px 90px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+    }
+    @media (max-width:860px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid rgba(17,24,39,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:16px;
+    }
+
+    .bigCount{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .countNum{
+      font-size:64px;
+      font-weight:900;
+      letter-spacing:-1px;
+      margin:0;
+      line-height:1;
+    }
+    .countLabel{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 10px;
+      border-radius:999px;
+      background: rgba(79,70,229,.10);
+      color: var(--accent);
+      font-weight:700;
+      font-size:12px;
+      border: 1px solid rgba(79,70,229,.18);
+      user-select:none;
+    }
+    .pill.good{ background: rgba(34,197,94,.10); color: #16a34a; border-color: rgba(34,197,94,.18);}
+    .pill.bad{ background: rgba(239,68,68,.10); color: #dc2626; border-color: rgba(239,68,68,.18);}
+
+    .actions{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .btn{
+      border:none;
+      border-radius: var(--btnRadius);
+      padding:14px 14px;
+      font-size:16px;
+      font-weight:900;
+      cursor:pointer;
+      transition:.15s transform, .15s filter;
+      user-select:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+    .btn:active{transform: translateY(1px)}
+    .btn.primary{background: linear-gradient(135deg, #4f46e5, #6d28d9); color:white;}
+    .btn.green{background: linear-gradient(135deg, #22c55e, #16a34a); color:white;}
+    .btn.gray{background: #f3f4f6; color:#111827; border:1px solid rgba(17,24,39,.10);}
+    .btn.red{background: linear-gradient(135deg, #ef4444, #b91c1c); color:white;}
+    .btn.small{padding:10px 12px; font-size:13px; border-radius:14px;}
+    .btn.full{grid-column: 1 / -1;}
+    .btn:focus{outline:none; box-shadow: var(--focus);}
+
+    .tapArea{
+      border-radius: var(--radius);
+      border: 2px dashed rgba(79,70,229,.25);
+      background: radial-gradient(600px 260px at 50% 10%, rgba(79,70,229,.10), transparent 55%),
+                  radial-gradient(600px 260px at 50% 90%, rgba(34,197,94,.10), transparent 55%),
+                  #fff;
+      padding:14px;
+      margin-top:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height:180px;
+      position:relative;
+      overflow:hidden;
+    }
+    .tapTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .tapTitle h2{margin:0; font-size:15px;}
+    .tapTitle span{font-size:12px; color:var(--muted);}
+    .tapBtn{
+      flex:1;
+      border-radius: 18px;
+      border:none;
+      cursor:pointer;
+      background: linear-gradient(135deg, rgba(79,70,229,.13), rgba(34,197,94,.12));
+      font-size:18px;
+      font-weight:900;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      min-height:86px;
+      user-select:none;
+      transition:.12s transform, .12s filter;
+      color:#111827;
+    }
+    .tapBtn:active{transform: translateY(1px); filter: brightness(.98);}
+    .tapBtn:focus{outline:none; box-shadow: var(--focus);}
+
+    .sideTitle{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      margin-bottom:10px;
+    }
+    .sideTitle h2{margin:0; font-size:15px;}
+    .mini{font-size:12px; color:var(--muted);}
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-height:620px;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .entry{
+      border:1px solid rgba(17,24,39,.08);
+      border-radius: 16px;
+      padding:12px 12px;
+      background: #fff;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .entry .left{min-width:0;}
+    .entry .date{font-weight:900; font-size:13px; margin-bottom:2px;}
+    .entry .count{font-size:13px; color:#111827; font-weight:900; margin-bottom:6px;}
+    .entry .sub{
+      font-size:12px;
+      color:var(--muted);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .entry .right{display:flex; flex-direction:column; gap:6px; align-items:flex-end;}
+
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.6;
+      background: rgba(243,244,246,.7);
+      border: 1px solid rgba(17,24,39,.08);
+      padding:10px 12px;
+      border-radius: 16px;
+    }
+
+    /* Celebration overlay */
+    .celebrate{
+      position:absolute;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background: rgba(255,255,255,.86);
+      backdrop-filter: blur(6px);
+      z-index:20;
+      cursor:pointer;
+    }
+    .celebrate .box{
+      text-align:center;
+      padding:18px 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(17,24,39,.10);
+      background:#fff;
+      box-shadow: var(--shadow);
+      width:min(420px, 92%);
+      pointer-events:none; /* タップで閉じるを優先 */
+    }
+    .boom{
+      font-size:40px;
+      font-weight:1000;
+      letter-spacing:.5px;
+      margin:0 0 6px 0;
+      background: linear-gradient(135deg, #ef4444, #f59e0b, #22c55e, #4f46e5);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+    .subboom{margin:0; color:var(--muted); font-size:13px; font-weight:800;}
+    .sparkles{
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      margin-top:10px;
+      font-size:22px;
+      animation: floaty 1.2s ease-in-out infinite;
+    }
+    @keyframes floaty{
+      0%,100%{transform: translateY(0)}
+      50%{transform: translateY(-6px)}
+    }
+
+    footerBar{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      background: rgba(247,247,255,.82);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(17,24,39,.06);
+      padding:10px 14px;
+      display:flex;
+      justify-content:center;
+      z-index:40;
+    }
+    .footerInner{
+      width:min(980px, 100%);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size:11px;
+      background: rgba(17,24,39,.06);
+      border:1px solid rgba(17,24,39,.08);
+      padding:3px 6px;
+      border-radius:8px;
+      color:#111827;
+    }
+
+    /* Pages */
+    .page{display:none;}
+    .page.active{display:block;}
+    .pageTitle{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin: 6px 2px 12px;
+    }
+    .pageTitle h2{margin:0; font-size:16px;}
+    .tabs{
+      display:flex; gap:8px; flex-wrap:wrap;
+      margin: 10px 0 10px;
+    }
+    .tab{
+      padding:10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(17,24,39,.10);
+      background: rgba(255,255,255,.7);
+      cursor:pointer;
+      font-weight:800;
+      font-size:13px;
+      transition:.15s transform, .15s background, .15s border;
+      user-select:none;
+    }
+    .tab.active{
+      background: rgba(79,70,229,.12);
+      border-color: rgba(79,70,229,.22);
+      color: var(--accent);
+    }
+    .tab:hover{transform: translateY(-1px); background:#fff;}
+    .tab:focus{outline:none; box-shadow: var(--focus);}
+
+    .field{
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:800;
+    }
+    input[type="text"], textarea{
+      width:100%;
+      border:1px solid rgba(17,24,39,.12);
+      border-radius: 16px;
+      padding:12px 12px;
+      font-size:14px;
+      outline:none;
+      transition:.15s box-shadow, .15s border;
+      font-family:var(--font);
+    }
+    textarea{min-height:88px; resize:vertical;}
+    input:focus, textarea:focus{border-color: rgba(79,70,229,.35); box-shadow: var(--focus);}
+
+    .moodGrid{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+    }
+    .moodBtn{
+      border:1px solid rgba(17,24,39,.10);
+      background:#fff;
+      border-radius: 16px;
+      padding:12px 10px;
+      cursor:pointer;
+      font-size:22px;
+      font-weight:900;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:.15s transform, .15s background, .15s border;
+      user-select:none;
+    }
+    .moodBtn.active{
+      border-color: rgba(79,70,229,.28);
+      background: rgba(79,70,229,.10);
+    }
+    .moodBtn:hover{transform: translateY(-1px);}
+    .moodBtn:focus{outline:none; box-shadow: var(--focus);}
+
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(17,24,39,.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:50;
+    }
+    .modal{
+      width:min(540px, 100%);
+      background:#fff;
+      border-radius: 22px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.25);
+      border: 1px solid rgba(17,24,39,.10);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding:14px 14px;
+      background: radial-gradient(700px 260px at 10% 10%, rgba(79,70,229,.12), transparent 55%),
+                  radial-gradient(700px 260px at 90% 40%, rgba(34,197,94,.12), transparent 55%),
+                  #fff;
+      border-bottom: 1px solid rgba(17,24,39,.08);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .modalHead h3{
+      margin:0;
+      font-size:15px;
+      font-weight:1000;
+    }
+    .modalBody{padding:14px; display:flex; flex-direction:column; gap:12px;}
+  </style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="brand" id="brandHome" title="ホームへ">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <h1>素振りカウント（家族用）</h1>
+        <p id="statusLine">準備OK</p>
+      </div>
+    </div>
+    <div class="navbtns">
+      <button class="iconbtn" id="btnNavHistory" title="履歴ページへ">📒 履歴</button>
+      <button class="iconbtn" id="btnNavSettings" title="設定ページへ">⚙️ 設定</button>
+      <button class="iconbtn" id="btnNavData" title="データ">💾 データ</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ========== HOME PAGE ========== -->
+  <section class="page active" id="pageHome" aria-label="ホーム">
+    <div class="grid">
+      <section class="card" aria-label="メイン">
+        <div class="bigCount">
+          <div>
+            <p class="countLabel">今日のカウント</p>
+            <p class="countNum" id="countNum">0</p>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+            <span class="pill" id="runPill">⏸ 停止中</span>
+            <span class="pill good" id="voicePill" style="display:none;">🎙 音声ON</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" id="btnStart">▶️ Start</button>
+          <button class="btn red" id="btnStop" disabled>⏹ Stop</button>
+          <button class="btn gray full" id="btnReset">🔁 今日のカウントを0に戻す</button>
+        </div>
+
+        <div class="tapArea" id="tapArea">
+          <div class="tapTitle">
+            <h2>メイン画面はシンプル</h2>
+            <span id="tapHint">Start中だけタップで+1</span>
+          </div>
+
+          <button class="tapBtn" id="tapBtn" disabled>👆 タップで +1</button>
+
+          <div class="hint" id="voiceHintBox" style="display:none;">
+            <div style="font-weight:900; color:#111827; margin-bottom:6px;">音声カウントの使い方</div>
+            <div id="voiceHintText"></div>
+          </div>
+
+          <!-- Celebration overlay (auto close) -->
+          <div class="celebrate" id="celebrate" title="タップで閉じる">
+            <div class="box">
+              <p class="boom">🎉 HOME RUN!! 🎉</p>
+              <p class="subboom">10回ごとに表示</p>
+              <div class="sparkles">✨ ⚾ ✨</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card" aria-label="サマリー">
+        <div class="sideTitle">
+          <h2>サマリー</h2>
+          <div class="mini" id="summaryMini">—</div>
+        </div>
+
+        <div class="hint" style="margin-bottom:10px;">
+          履歴は「📒 履歴」ページでまとめて見られます。
+        </div>
+
+        <div class="entry">
+          <div class="left">
+            <div class="date">今週（Mon〜Sun）</div>
+            <div class="count" id="weekTotal">0 回</div>
+            <div class="sub mini" id="weekRange">—</div>
+          </div>
+          <div class="right"><span class="pill good">📅 WEEK</span></div>
+        </div>
+
+        <div class="entry">
+          <div class="left">
+            <div class="date">今月</div>
+            <div class="count" id="monthTotal">0 回</div>
+            <div class="sub mini" id="monthLabel">—</div>
+          </div>
+          <div class="right"><span class="pill">🗓 MONTH</span></div>
+        </div>
+
+        <div class="entry">
+          <div class="left">
+            <div class="date">累計</div>
+            <div class="count" id="allTotal">0 回</div>
+            <div class="sub mini">全履歴の合計</div>
+          </div>
+          <div class="right"><span class="pill bad">🏁 TOTAL</span></div>
+        </div>
+
+        <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn small gray" id="btnGoHistory">📒 履歴を見る</button>
+          <button class="btn small gray" id="btnGoSettings">⚙️ 設定を開く</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ========== HISTORY PAGE ========== -->
+  <section class="page" id="pageHistory" aria-label="履歴ページ">
+    <div class="pageTitle">
+      <h2>📒 履歴</h2>
+      <button class="btn small gray" id="btnBackFromHistory">← ホーム</button>
+    </div>
+
+    <div class="card">
+      <div class="tabs" role="tablist" aria-label="表示切り替え">
+        <button class="tab active" id="tabHistory" role="tab" aria-selected="true">履歴</button>
+        <button class="tab" id="tabTotals" role="tab" aria-selected="false">合計</button>
+      </div>
+
+      <div id="panelHistory">
+        <div class="row" style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+          <button class="btn small gray" id="btnClearHistory">🗑 履歴を全削除</button>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn small gray" id="btnExportCSV">📄 CSV</button>
+          </div>
+        </div>
+        <div class="list" id="historyList"></div>
+      </div>
+
+      <div id="panelTotals" style="display:none;">
+        <div class="hint" style="margin-bottom:10px;">
+          週・月・累計の合計回数を表示します（履歴から自動集計）。
+        </div>
+
+        <div class="entry">
+          <div class="left">
+            <div class="date">今週（Mon〜Sun）</div>
+            <div class="count" id="weekTotal2">0 回</div>
+            <div class="sub mini" id="weekRange2">—</div>
+          </div>
+          <div class="right"><span class="pill good">📅 WEEK</span></div>
+        </div>
+
+        <div class="entry">
+          <div class="left">
+            <div class="date">今月</div>
+            <div class="count" id="monthTotal2">0 回</div>
+            <div class="sub mini" id="monthLabel2">—</div>
+          </div>
+          <div class="right"><span class="pill">🗓 MONTH</span></div>
+        </div>
+
+        <div class="entry">
+          <div class="left">
+            <div class="date">累計</div>
+            <div class="count" id="allTotal2">0 回</div>
+            <div class="sub mini">全履歴の合計</div>
+          </div>
+          <div class="right"><span class="pill bad">🏁 TOTAL</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SETTINGS PAGE ========== -->
+  <section class="page" id="pageSettings" aria-label="設定ページ">
+    <div class="pageTitle">
+      <h2>⚙️ 設定</h2>
+      <button class="btn small gray" id="btnBackFromSettings">← ホーム</button>
+    </div>
+
+    <div class="card">
+      <div class="entry" style="align-items:center;">
+        <div class="left">
+          <div class="date">音（効果音）</div>
+          <div class="sub">ホームラン時の「カキーン」を鳴らします。</div>
+        </div>
+        <div class="right">
+          <button class="btn small green" id="toggleSound">ON</button>
+        </div>
+      </div>
+
+      <div class="entry" style="align-items:center; margin-top:10px;">
+        <div class="left">
+          <div class="date">音声入力</div>
+          <div class="sub">キーワードで +1 カウントします。</div>
+        </div>
+        <div class="right">
+          <button class="btn small gray" id="toggleVoice">OFF</button>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:10px;">
+        <div class="label">音声キーワード（例：はい / よし / いくぞ）</div>
+        <input type="text" id="voiceKeyword" placeholder="はい" maxlength="12" />
+        <div class="mini">※「はい」は（ハイ/はいっ/はい。/hai等）も拾うようにしています。</div>
+      </div>
+
+      <div class="hint" style="margin-top:10px;">
+        <div style="font-weight:900; color:#111827; margin-bottom:6px;">音声がうまくいかない時の対策（内蔵）</div>
+        <div>
+          ・ひらがな/カタカナを正規化して判定<br>
+          ・「はいっ」「はい。」などの表記ゆれもOK<br>
+          ・同じ認識が短時間に続いたら無視（2重カウント対策）<br>
+          ・止まりやすい場合は自動で再開
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footerBar>
+  <div class="footerInner">
+    <div>保存先：<span class="kbd">localStorage</span>（このブラウザ内）</div>
+    <div>データ保護：<span class="kbd">JSONバックアップ</span>推奨</div>
+  </div>
+</footerBar>
+
+<!-- Data Modal -->
+<div class="modalOverlay" id="modalDataOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="データ">
+    <div class="modalHead">
+      <h3>💾 データ</h3>
+      <button class="btn small gray" id="btnDataClose">閉じる</button>
+    </div>
+    <div class="modalBody">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn small gray" id="btnBackupJSON">⬇️ JSONバックアップ</button>
+        <label class="btn small gray" style="cursor:pointer;">
+          ⬆️ JSON復元
+          <input type="file" id="restoreJSONFile" accept="application/json" style="display:none;" />
+        </label>
+      </div>
+
+      <div class="hint">
+        CSVはExcel等で開けます。JSONは「丸ごと保存・復元」用です。
+        端末やブラウザを変える可能性があるなら、JSONバックアップが安心です。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Save Modal -->
+<div class="modalOverlay" id="modalSaveOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="記録を保存">
+    <div class="modalHead">
+      <h3>📝 今日の記録</h3>
+      <button class="btn small gray" id="btnSaveCancel">キャンセル</button>
+    </div>
+    <div class="modalBody">
+      <div class="hint" id="saveHint"></div>
+
+      <div>
+        <div class="label">気分</div>
+        <div class="moodGrid" id="moodGrid">
+          <button class="moodBtn" data-mood="😃" type="button">😃</button>
+          <button class="moodBtn" data-mood="🙂" type="button">🙂</button>
+          <button class="moodBtn" data-mood="😌" type="button">😌</button>
+          <button class="moodBtn" data-mood="😔" type="button">😔</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">今日の感想（短くでOK）</div>
+        <textarea id="commentBox" placeholder="例：フォームが良かった。最後ちょっと疲れた。"></textarea>
+      </div>
+
+      <button class="btn green" id="btnSaveDone">✅ 保存する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const LS_KEYS = {
+    history: "suburi_history_v4",
+    settings: "suburi_settings_v4",
+    session: "suburi_session_v4"
+  };
+
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  // Pages
+  const pageHome = $("#pageHome");
+  const pageHistory = $("#pageHistory");
+  const pageSettings = $("#pageSettings");
+
+  const btnNavHistory = $("#btnNavHistory");
+  const btnNavSettings = $("#btnNavSettings");
+  const btnNavData = $("#btnNavData");
+  const brandHome = $("#brandHome");
+  const btnGoHistory = $("#btnGoHistory");
+  const btnGoSettings = $("#btnGoSettings");
+  const btnBackFromHistory = $("#btnBackFromHistory");
+  const btnBackFromSettings = $("#btnBackFromSettings");
+
+  // Home UI
+  const countNum = $("#countNum");
+  const runPill = $("#runPill");
+  const voicePill = $("#voicePill");
+  const statusLine = $("#statusLine");
+  const btnStart = $("#btnStart");
+  const btnStop  = $("#btnStop");
+  const btnReset = $("#btnReset");
+  const tapBtn   = $("#tapBtn");
+  const celebrate = $("#celebrate");
+  const voiceHintBox = $("#voiceHintBox");
+  const voiceHintText = $("#voiceHintText");
+  const summaryMini = $("#summaryMini");
+
+  // Totals (Home + History)
+  const weekTotal = $("#weekTotal");
+  const monthTotal = $("#monthTotal");
+  const allTotal = $("#allTotal");
+  const weekRange = $("#weekRange");
+  const monthLabel = $("#monthLabel");
+
+  const weekTotal2 = $("#weekTotal2");
+  const monthTotal2 = $("#monthTotal2");
+  const allTotal2 = $("#allTotal2");
+  const weekRange2 = $("#weekRange2");
+  const monthLabel2 = $("#monthLabel2");
+
+  // History page
+  const tabHistory = $("#tabHistory");
+  const tabTotals  = $("#tabTotals");
+  const panelHistory = $("#panelHistory");
+  const panelTotals  = $("#panelTotals");
+  const historyList = $("#historyList");
+  const btnClearHistory = $("#btnClearHistory");
+  const btnExportCSV = $("#btnExportCSV");
+
+  // Settings page
+  const toggleSound = $("#toggleSound");
+  const toggleVoice = $("#toggleVoice");
+  const voiceKeywordInput = $("#voiceKeyword");
+
+  // Modals
+  const modalDataOverlay = $("#modalDataOverlay");
+  const btnDataClose = $("#btnDataClose");
+  const btnBackupJSON = $("#btnBackupJSON");
+  const restoreJSONFile = $("#restoreJSONFile");
+
+  const modalSaveOverlay = $("#modalSaveOverlay");
+  const saveHint = $("#saveHint");
+  const moodGrid = $("#moodGrid");
+  const commentBox = $("#commentBox");
+  const btnSaveDone = $("#btnSaveDone");
+  const btnSaveCancel = $("#btnSaveCancel");
+
+  // State
+  let settings = { soundEnabled: true, voiceEnabled: false, voiceKeyword: "はい" };
+  let history = [];
+  let session = { running: false, todayCount: 0, startedAtISO: null };
+
+  // Speech recognition
+  let recognition = null;
+  let isRecognizing = false;
+  let lastAccepted = { key: "", t: 0 };
+
+  // Celebration timer
+  let celebrateTimer = null;
+
+  // Audio
+  let audioCtx = null;
+
+  const safeJSONParse = (str, fallback) => { try { return JSON.parse(str); } catch { return fallback; } };
+  const saveLS = () => {
+    localStorage.setItem(LS_KEYS.settings, JSON.stringify(settings));
+    localStorage.setItem(LS_KEYS.history, JSON.stringify(history));
+    localStorage.setItem(LS_KEYS.session, JSON.stringify(session));
+  };
+  const loadLS = () => {
+    const s = safeJSONParse(localStorage.getItem(LS_KEYS.settings), null);
+    const h = safeJSONParse(localStorage.getItem(LS_KEYS.history), null);
+    const se = safeJSONParse(localStorage.getItem(LS_KEYS.session), null);
+    if (s && typeof s === "object") settings = {...settings, ...s};
+    if (Array.isArray(h)) history = h;
+    if (se && typeof se === "object") session = {...session, ...se};
+  };
+
+  const setStatus = (text) => { statusLine.textContent = text; };
+
+  const openModal = (overlay) => { overlay.style.display = "flex"; overlay.setAttribute("aria-hidden","false"); };
+  const closeModal = (overlay) => { overlay.style.display = "none"; overlay.setAttribute("aria-hidden","true"); };
+
+  const clampInt = (n) => Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+
+  const pad2 = (n) => String(n).padStart(2,"0");
+  const formatDateJP = (d) => `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}`;
+  const nowISO = () => new Date().toISOString();
+
+  /* ===============================
+     ページ切替（同一ファイル内）
+     =============================== */
+  const setActiveNav = (page) => {
+    [btnNavHistory, btnNavSettings].forEach(b => b.classList.remove("active"));
+    if (page === "history") btnNavHistory.classList.add("active");
+    if (page === "settings") btnNavSettings.classList.add("active");
+  };
+
+  const showPage = (name) => {
+    [pageHome, pageHistory, pageSettings].forEach(p => p.classList.remove("active"));
+    if (name === "home") pageHome.classList.add("active");
+    if (name === "history") pageHistory.classList.add("active");
+    if (name === "settings") pageSettings.classList.add("active");
+    setActiveNav(name);
+    if (name === "history") { renderHistory(); updateTotals(); }
+    if (name === "settings") { updateSettingsUI(); }
+  };
+
+  /* ===============================
+     Audio (kakiin)
+     =============================== */
+  const ensureAudio = () => {
+    if (!audioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      audioCtx = new Ctx();
+    }
+    return audioCtx;
+  };
+
+  const playKakiin = async () => {
+    if (!settings.soundEnabled) return;
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    if (ctx.state === "suspended") { try { await ctx.resume(); } catch {} }
+    const t0 = ctx.currentTime;
+
+    const tone = (freq, start, dur, type="triangle", gain=0.12) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, start);
+      g.gain.setValueAtTime(0.0001, start);
+      g.gain.exponentialRampToValueAtTime(gain, start + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(start);
+      o.stop(start + dur + 0.02);
+    };
+
+    tone(880,  t0 + 0.00, 0.10, "square",   0.10);
+    tone(1320, t0 + 0.02, 0.12, "triangle", 0.08);
+    tone(660,  t0 + 0.07, 0.16, "sine",     0.06);
+  };
+
+  /* ===============================
+     Celebration (auto close)
+     =============================== */
+  const showCelebration = () => {
+    celebrate.style.display = "flex";
+    if (celebrateTimer) clearTimeout(celebrateTimer);
+    celebrateTimer = setTimeout(() => {
+      celebrate.style.display = "none";
+    }, 1400); // ← 自動で閉じる
+  };
+  const hideCelebration = () => {
+    celebrate.style.display = "none";
+    if (celebrateTimer) clearTimeout(celebrateTimer);
+    celebrateTimer = null;
+  };
+
+  celebrate.addEventListener("click", hideCelebration);
+
+  /* ===============================
+     Speech recognition improvements
+     - ひらがな/カタカナ正規化
+     - 記号除去
+     - 「はい」の表記ゆれを広めに許可
+     =============================== */
+
+  const supportsSpeech = () => ("webkitSpeechRecognition" in window) || ("SpeechRecognition" in window);
+
+  // カタカナ→ひらがな（簡易）
+  const kataToHira = (s) => s.replace(/[\u30A1-\u30F6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+
+  const normalizeSpeech = (s) => {
+    if (!s) return "";
+    let t = String(s).trim();
+    t = t.replace(/\s+/g, "");
+    // 全角英数→半角
+    t = t.replace(/[！-～]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0));
+    // 記号除去（句読点/伸ばし/小文字などは残してもOKだが、判定を安定させる）
+    t = t.replace(/[、。,.!！?？「」"”'’（）()［］\[\]{}]/g, "");
+    // カタカナ→ひらがな
+    t = kataToHira(t);
+    // 伸ばし棒を除去（はいー等）
+    t = t.replace(/ー+/g, "");
+    // 小さい「っ」を除去（はいっ）
+    t = t.replace(/っ+/g, "");
+    // 英語のhi/haiも許可したいので小文字化
+    t = t.toLowerCase();
+    return t;
+  };
+
+  const isNumericOnly = (s) => /^[0-9０-９]+$/.test(s);
+
+  // 「はい」判定を広めに：kw一致 + 既定の揺れ
+  const matchKeyword = (transcript, kw) => {
+    const t = normalizeSpeech(transcript);
+    const k = normalizeSpeech(kw || "はい");
+
+    if (!t || !k) return false;
+
+    // 数字だけは無視
+    if (isNumericOnly(transcript)) return false;
+
+    // まず通常一致
+    if (t.includes(k)) return true;
+
+    // 「はい」系の揺れ（kwが「はい」っぽい場合）
+    const kwIsHai = (k === "はい" || k === "はぃ" || k === "hai" || k === "hi");
+    if (kwIsHai) {
+      const variants = ["はい","はぃ","hai","hi","ハイ","はいー","はいっ","はーい","ほい"];
+      return variants.map(v => normalizeSpeech(v)).some(vn => vn && t.includes(vn));
+    }
+
+    return false;
+  };
+
+  const setupRecognition = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return null;
+
+    const rec = new SR();
+    rec.lang = "ja-JP";
+    rec.interimResults = true;
+    rec.continuous = true;
+    rec.maxAlternatives = 1;
+
+    rec.onstart = () => {
+      isRecognizing = true;
+      updateVoicePill();
+      if (settings.voiceEnabled && session.running) setStatus("音声待機中…");
+    };
+
+    rec.onerror = (e) => {
+      isRecognizing = false;
+      updateVoicePill();
+      setStatus(`音声エラー: ${e.error || "unknown"}`);
+    };
+
+    rec.onend = () => {
+      isRecognizing = false;
+      updateVoicePill();
+      // 走行中＋音声ONなら、少し待って再開（再開強化）
+      if (settings.voiceEnabled && session.running) {
+        setTimeout(() => tryStartRecognition(true), 250);
+      }
+    };
+
+    rec.onresult = (event) => {
+      // 最新結果
+      const res = event.results[event.results.length - 1];
+      if (!res) return;
+
+      const transcript = (res[0]?.transcript || "").trim();
+      if (!transcript) return;
+
+      // final優先、ただしfinalが来ない環境があるので「interimでも強一致なら1回だけ」許可
+      const okByFinal = !!res.isFinal;
+      const okByStrongInterim = (!res.isFinal && matchKeyword(transcript, settings.voiceKeyword));
+
+      if (!(okByFinal || okByStrongInterim)) return;
+      if (!session.running) return;
+
+      // キーワード一致必須
+      if (!matchKeyword(transcript, settings.voiceKeyword)) return;
+
+      // 重複抑制（同一キーは短時間無視）
+      const now = Date.now();
+      const key = normalizeSpeech(transcript) + "|" + normalizeSpeech(settings.voiceKeyword);
+      if (lastAccepted.key === key && (now - lastAccepted.t) < 900) return;
+
+      lastAccepted = { key, t: now };
+
+      incrementCount(1, { from: "voice", transcript });
+    };
+
+    return rec;
+  };
+
+  const tryStartRecognition = (silent=false) => {
+    if (!supportsSpeech()) {
+      if (!silent) alert("このブラウザは音声入力に対応していません。");
+      settings.voiceEnabled = false;
+      saveLS();
+      updateSettingsUI();
+      updateVoicePill();
+      return;
+    }
+    if (!recognition) recognition = setupRecognition();
+    if (!recognition) return;
+    if (isRecognizing) return;
+
+    try { recognition.start(); } catch(e) {}
+  };
+
+  const stopRecognition = () => {
+    if (!recognition) return;
+    try { recognition.stop(); } catch(e) {}
+  };
+
+  const updateVoiceHint = () => {
+    if (!settings.voiceEnabled) {
+      voiceHintBox.style.display = "none";
+      return;
+    }
+    const kw = (settings.voiceKeyword || "はい").trim();
+    voiceHintBox.style.display = "block";
+    voiceHintText.innerHTML =
+      `Start中に <b>「${kw}」</b> と言うと +1 されます。<br>` +
+      `（「はい」はハイ/はいっ/はい。/hai等もOK）<br>` +
+      `（誤カウント対策：短時間の重複は無視）`;
+  };
+
+  /* ===============================
+     Core actions
+     =============================== */
+  const updateVoicePill = () => {
+    if (settings.voiceEnabled) {
+      voicePill.style.display = "inline-flex";
+      voicePill.textContent = isRecognizing ? "🎙 音声ON（待機中）" : "🎙 音声ON";
+      voicePill.className = "pill good";
+    } else {
+      voicePill.style.display = "none";
+    }
+  };
+
+  const updateMainUI = () => {
+    countNum.textContent = String(session.todayCount);
+
+    if (session.running) {
+      runPill.textContent = "▶️ 計測中";
+      runPill.className = "pill good";
+      btnStart.disabled = true;
+      btnStop.disabled = false;
+      tapBtn.disabled = false;
+      $("#tapHint").textContent = "タップでどんどんカウント！";
+    } else {
+      runPill.textContent = "⏸ 停止中";
+      runPill.className = "pill";
+      btnStart.disabled = false;
+      btnStop.disabled = true;
+      tapBtn.disabled = true;
+      $("#tapHint").textContent = "Start中だけタップで+1";
+    }
+
+    updateVoicePill();
+    updateVoiceHint();
+    updateSummaryMini();
+  };
+
+  const incrementCount = (delta=1) => {
+    const before = session.todayCount;
+    session.todayCount = clampInt(session.todayCount + delta);
+    saveLS();
+    updateMainUI();
+
+    const after = session.todayCount;
+    if (after > 0 && after % 10 === 0 && after !== before) {
+      showCelebration();
+      playKakiin();
+    }
+  };
+
+  const startRun = () => {
+    session.running = true;
+    session.startedAtISO = nowISO();
+    saveLS();
+    updateMainUI();
+    setStatus("計測中！");
+    if (settings.voiceEnabled) tryStartRecognition(true);
+  };
+
+  const stopRun = () => {
+    session.running = false;
+    saveLS();
+    updateMainUI();
+    setStatus("停止しました。記録しますか？");
+    stopRecognition();
+    if (session.todayCount > 0) openSaveModal();
+  };
+
+  const resetToday = () => {
+    if (session.running) { alert("計測中はリセットできません。Stopしてからリセットしてください。"); return; }
+    if (!confirm("今日のカウントを0に戻します。OK？")) return;
+    session.todayCount = 0;
+    session.startedAtISO = null;
+    saveLS();
+    updateMainUI();
+    setStatus("今日のカウントを0にしました。");
+  };
+
+  /* ===============================
+     Save flow
+     =============================== */
+  let selectedMood = "🙂";
+
+  const openSaveModal = () => {
+    selectedMood = "🙂";
+    commentBox.value = "";
+    $$("#moodGrid .moodBtn").forEach(btn => btn.classList.toggle("active", btn.dataset.mood === selectedMood));
+    const d = new Date();
+    saveHint.textContent = `今日（${formatDateJP(d)}）の素振り：${session.todayCount} 回を保存します。`;
+    openModal(modalSaveOverlay);
+  };
+
+  const saveRecord = () => {
+    const c = clampInt(session.todayCount);
+    if (c <= 0) { closeModal(modalSaveOverlay); return; }
+
+    const d = new Date();
+    const rec = {
+      id: crypto?.randomUUID ? crypto.randomUUID() : (String(Date.now()) + "_" + Math.random().toString(16).slice(2)),
+      iso: d.toISOString(),
+      dateLabel: formatDateJP(d),
+      count: c,
+      mood: selectedMood,
+      comment: (commentBox.value || "").trim()
+    };
+
+    history.unshift(rec);
+    session.todayCount = 0;
+    session.startedAtISO = null;
+
+    saveLS();
+    closeModal(modalSaveOverlay);
+    updateMainUI();
+    renderHistory();
+    updateTotals();
+    setStatus("保存しました！");
+  };
+
+  /* ===============================
+     History render (指定フォーマット)
+     日付
+     回数
+     気分 コメント
+     =============================== */
+  const renderHistory = () => {
+    historyList.innerHTML = "";
+    if (!history.length) {
+      const empty = document.createElement("div");
+      empty.className = "hint";
+      empty.textContent = "まだ履歴がありません。Stop → 気分＆感想 → 保存で記録が残ります。";
+      historyList.appendChild(empty);
+      updateSummaryMini();
+      return;
+    }
+
+    for (const rec of history) {
+      const el = document.createElement("div");
+      el.className = "entry";
+
+      const left = document.createElement("div");
+      left.className = "left";
+
+      const date = document.createElement("div");
+      date.className = "date";
+      date.textContent = rec.dateLabel;
+
+      const count = document.createElement("div");
+      count.className = "count";
+      count.textContent = `${rec.count} 回`;
+
+      const sub = document.createElement("div");
+      sub.className = "sub";
+      const moodAndComment = `${rec.mood} ${rec.comment || ""}`.trim();
+      sub.textContent = moodAndComment || rec.mood;
+
+      left.appendChild(date);
+      left.appendChild(count);
+      left.appendChild(sub);
+
+      const right = document.createElement("div");
+      right.className = "right";
+
+      const del = document.createElement("button");
+      del.className = "btn small gray";
+      del.textContent = "削除";
+      del.onclick = () => {
+        if (!confirm("この記録を削除しますか？")) return;
+        history = history.filter(h => h.id !== rec.id);
+        saveLS();
+        renderHistory();
+        updateTotals();
+        setStatus("削除しました。");
+      };
+
+      right.appendChild(del);
+      el.appendChild(left);
+      el.appendChild(right);
+      historyList.appendChild(el);
+    }
+
+    updateSummaryMini();
+  };
+
+  const updateSummaryMini = () => {
+    const total = history.reduce((a,b)=>a + (Number(b.count)||0), 0);
+    summaryMini.textContent = history.length ? `履歴 ${history.length} 件 / 累計 ${total} 回` : "履歴 0 件";
+  };
+
+  /* ===============================
+     Totals
+     =============================== */
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const addDays = (d, days) => new Date(d.getTime() + days*24*60*60*1000);
+
+  const getWeekRangeMonSun = (d0 = new Date()) => {
+    const d = startOfDay(d0);
+    const day = d.getDay();
+    const diffToMon = (day === 0) ? -6 : (1 - day);
+    const mon = addDays(d, diffToMon);
+    const sun = addDays(mon, 6);
+    return { mon, sun };
+  };
+
+  const updateTotals = () => {
+    const now = new Date();
+    const { mon, sun } = getWeekRangeMonSun(now);
+
+    const startWeek = mon.getTime();
+    const endWeek = addDays(sun, 1).getTime();
+
+    const startMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const endMonth = new Date(now.getFullYear(), now.getMonth()+1, 1).getTime();
+
+    let w=0, m=0, all=0;
+    for (const rec of history) {
+      const t = Date.parse(rec.iso || "");
+      const c = Number(rec.count) || 0;
+      all += c;
+      if (t >= startWeek && t < endWeek) w += c;
+      if (t >= startMonth && t < endMonth) m += c;
+    }
+
+    const wk = `${formatDateJP(mon)} 〜 ${formatDateJP(sun)}`;
+    const ml = `${now.getFullYear()}/${pad2(now.getMonth()+1)}`;
+
+    // Home
+    weekTotal.textContent = `${w} 回`;
+    monthTotal.textContent = `${m} 回`;
+    allTotal.textContent = `${all} 回`;
+    weekRange.textContent = wk;
+    monthLabel.textContent = ml;
+
+    // History totals tab
+    weekTotal2.textContent = `${w} 回`;
+    monthTotal2.textContent = `${m} 回`;
+    allTotal2.textContent = `${all} 回`;
+    weekRange2.textContent = wk;
+    monthLabel2.textContent = ml;
+
+    updateSummaryMini();
+  };
+
+  /* ===============================
+     CSV / JSON
+     =============================== */
+  const escapeCSV = (s) => {
+    const str = String(s ?? "");
+    if (/[",\n]/.test(str)) return `"${str.replace(/"/g,'""')}"`;
+    return str;
+  };
+
+  const exportCSV = () => {
+    const rows = [["date","count","mood","comment","iso"]];
+    for (const r of history) rows.push([r.dateLabel, r.count, r.mood, r.comment || "", r.iso || ""]);
+    const csv = rows.map(row => row.map(escapeCSV).join(",")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "suburi_history.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setStatus("CSVを出力しました。");
+  };
+
+  const backupJSON = () => {
+    const payload = { version: 4, exportedAt: nowISO(), settings, history };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "suburi_backup.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setStatus("JSONバックアップを出力しました。");
+  };
+
+  const restoreJSON = async (file) => {
+    try{
+      const text = await file.text();
+      const obj = JSON.parse(text);
+      if (!obj || typeof obj !== "object") throw new Error("invalid json");
+      if (!Array.isArray(obj.history)) throw new Error("history missing");
+
+      history = obj.history;
+      if (obj.settings && typeof obj.settings === "object") settings = {...settings, ...obj.settings};
+
+      session.running = false;
+      session.todayCount = 0;
+      session.startedAtISO = null;
+
+      saveLS();
+      updateSettingsUI();
+      updateMainUI();
+      renderHistory();
+      updateTotals();
+      setStatus("JSONから復元しました。");
+      alert("復元しました！");
+    } catch(e){
+      alert("復元に失敗しました。JSONファイルを確認してください。");
+      setStatus("復元に失敗しました。");
+    }
+  };
+
+  /* ===============================
+     Settings UI
+     =============================== */
+  const updateSettingsUI = () => {
+    toggleSound.textContent = settings.soundEnabled ? "ON" : "OFF";
+    toggleSound.className = settings.soundEnabled ? "btn small green" : "btn small gray";
+
+    toggleVoice.textContent = settings.voiceEnabled ? "ON" : "OFF";
+    toggleVoice.className = settings.voiceEnabled ? "btn small green" : "btn small gray";
+
+    voiceKeywordInput.value = settings.voiceKeyword || "はい";
+    updateVoiceHint();
+    updateVoicePill();
+  };
+
+  /* ===============================
+     History tabs
+     =============================== */
+  const setHistoryTab = (name) => {
+    const isHistory = name === "history";
+    tabHistory.classList.toggle("active", isHistory);
+    tabTotals.classList.toggle("active", !isHistory);
+    tabHistory.setAttribute("aria-selected", isHistory ? "true" : "false");
+    tabTotals.setAttribute("aria-selected", !isHistory ? "true" : "false");
+    panelHistory.style.display = isHistory ? "block" : "none";
+    panelTotals.style.display = !isHistory ? "block" : "none";
+    if (!isHistory) updateTotals();
+  };
+
+  /* ===============================
+     Wire events
+     =============================== */
+  // Nav
+  brandHome.addEventListener("click", () => showPage("home"));
+  btnNavHistory.addEventListener("click", () => showPage("history"));
+  btnNavSettings.addEventListener("click", () => showPage("settings"));
+
+  btnGoHistory.addEventListener("click", () => showPage("history"));
+  btnGoSettings.addEventListener("click", () => showPage("settings"));
+  btnBackFromHistory.addEventListener("click", () => showPage("home"));
+  btnBackFromSettings.addEventListener("click", () => showPage("home"));
+
+  // Home actions
+  btnStart.addEventListener("click", startRun);
+  btnStop.addEventListener("click", stopRun);
+  btnReset.addEventListener("click", resetToday);
+  tapBtn.addEventListener("click", () => { if (session.running) incrementCount(1); });
+
+  // Settings actions
+  toggleSound.addEventListener("click", () => {
+    settings.soundEnabled = !settings.soundEnabled;
+    saveLS();
+    updateSettingsUI();
+    setStatus(`音：${settings.soundEnabled ? "ON" : "OFF"}`);
+  });
+
+  toggleVoice.addEventListener("click", () => {
+    settings.voiceEnabled = !settings.voiceEnabled;
+    if (settings.voiceEnabled && session.running) tryStartRecognition(false);
+    else stopRecognition();
+    saveLS();
+    updateSettingsUI();
+    updateMainUI();
+    setStatus(`音声：${settings.voiceEnabled ? "ON" : "OFF"}`);
+  });
+
+  voiceKeywordInput.addEventListener("input", () => {
+    const v = (voiceKeywordInput.value || "").trim();
+    settings.voiceKeyword = v || "はい";
+    saveLS();
+    updateSettingsUI();
+    setStatus("音声キーワードを更新しました。");
+  });
+
+  // History tabs
+  tabHistory.addEventListener("click", () => setHistoryTab("history"));
+  tabTotals.addEventListener("click", () => setHistoryTab("totals"));
+
+  btnClearHistory.addEventListener("click", () => {
+    if (!history.length) return;
+    if (!confirm("履歴をすべて削除します。OK？（戻せません）")) return;
+    history = [];
+    saveLS();
+    renderHistory();
+    updateTotals();
+    setStatus("履歴を全削除しました。");
+  });
+
+  btnExportCSV.addEventListener("click", exportCSV);
+
+  // Data modal
+  btnNavData.addEventListener("click", () => openModal(modalDataOverlay));
+  btnDataClose.addEventListener("click", () => closeModal(modalDataOverlay));
+  modalDataOverlay.addEventListener("click", (e) => { if (e.target === modalDataOverlay) closeModal(modalDataOverlay); });
+
+  btnBackupJSON.addEventListener("click", backupJSON);
+  restoreJSONFile.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    restoreJSON(file);
+    e.target.value = "";
+  });
+
+  // Save modal
+  btnSaveCancel.addEventListener("click", () => { closeModal(modalSaveOverlay); setStatus("保存をキャンセルしました。"); });
+  $$("#moodGrid .moodBtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      selectedMood = btn.dataset.mood;
+      $$("#moodGrid .moodBtn").forEach(b => b.classList.toggle("active", b.dataset.mood === selectedMood));
+    });
+  });
+  btnSaveDone.addEventListener("click", saveRecord);
+
+  // ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    [modalDataOverlay, modalSaveOverlay].forEach(ov => {
+      if (ov.style.display === "flex") closeModal(ov);
+    });
+    hideCelebration();
+  });
+
+  /* ===============================
+     Init
+     =============================== */
+  const init = () => {
+    loadLS();
+    session.running = false; // 起動時は安全に停止
+    updateSettingsUI();
+    updateMainUI();
+    renderHistory();
+    updateTotals();
+    setHistoryTab("history");
+    setStatus("準備OK");
+  };
+
+  init();
+})();
+</script>
+</body>
+</html>
